@@ -1,41 +1,142 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Rajhans Quick Answer</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#f4f7fb;color:#172033}
-header{background:#173b79;color:white;padding:22px 16px;text-align:center}
-header h1{margin:0;font-size:26px}
-header p{margin:8px 0 0;color:#e0eaff}
-main{max-width:650px;margin:35px auto;padding:20px}
-.panel{background:white;padding:24px;border-radius:18px;box-shadow:0 5px 22px #142b4a12}
-h2{text-align:center;margin-top:0}
-textarea{width:100%;min-height:120px;padding:14px;border:1px solid #cbd5e1;border-radius:12px;font-size:16px;resize:vertical}
-button{width:100%;margin-top:12px;padding:14px;background:#2459b3;color:white;border:0;border-radius:10px;font-size:16px;font-weight:bold}
-#answer{margin-top:20px;white-space:pre-wrap;line-height:1.6}
-footer{text-align:center;color:#68758a;padding:25px;font-size:13px}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rajhans Quick Answer</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #f0f4f9; color: #333; display: flex; flex-direction: column; min-height: 100vh; }
+        header { background-color: #0d47a1; color: white; text-align: center; padding: 25px 15px; }
+        header h1 { font-size: 26px; margin-bottom: 5px; }
+        header p { font-size: 14px; opacity: 0.9; }
+        .container { max-width: 500px; margin: 20px auto; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); flex: 1; width: 90%; }
+        h2 { font-size: 20px; margin-bottom: 15px; text-align: center; color: #1a237e; }
+        
+        .api-section { background: #eef3fc; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
+        .api-section input { width: 100%; padding: 8px; font-size: 13px; border: 1px solid #b0bec5; border-radius: 6px; outline: none; margin-top: 5px; }
+
+        .input-group { position: relative; margin-bottom: 15px; }
+        textarea { width: 100%; height: 110px; padding: 12px 45px 12px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; resize: none; outline: none; }
+        textarea:focus { border-color: #1976d2; }
+        
+        .mic-btn { position: absolute; right: 10px; top: 10px; background: #e3f2fd; border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        .mic-btn.listening { background: #ffebee; animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        
+        button.submit-btn { width: 100%; background-color: #1976d2; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+        button.submit-btn:hover { background-color: #1565c0; }
+        
+        .output-box { margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #1976d2; border-radius: 6px; display: none; font-size: 15px; line-height: 1.5; white-space: pre-wrap; }
+        footer { text-align: center; padding: 15px; color: #666; font-size: 13px; margin-top: auto; }
+    </style>
 </head>
 <body>
-<header><h1>Rajhans Quick Answer</h1><p>Apne sawalon ke jawab paayein</p></header>
-<main><div class="panel">
-<h2>Apna sawal poochhein</h2>
-<p>Apna question neeche likhein:</p>
-<textarea id="question" placeholder="Jaise: Bharat ki rajdhani kya hai?"></textarea>
-<button onclick="answerQuestion()">Jawab dekhein</button>
-<div id="answer" role="status"></div>
-</div></main>
-<footer>© 2026 Rajhans Quick Answer</footer>
-<script>
-function answerQuestion(){
-const q=document.getElementById('question').value.trim();
-const a=document.getElementById('answer');
-if(!q){a.textContent='Pehle apna sawal likhein.';return;}
-a.textContent='Aapka sawal: '+q+'\n\nYeh website ka basic demo hai. Asli AI jawab paane ke liye secure AI service ko connect karna abhi baaki hai.';
-}
-</script>
+
+    <header>
+        <h1>Rajhans Quick Answer</h1>
+        <p>Apne sawalon ke jawab paayein</p>
+    </header>
+
+    <div class="container">
+        <!-- API Key Input Section -->
+        <div class="api-section">
+            <label style="font-size: 12px; font-weight: bold; color: #333;">Gemini API Key dalein:</label>
+            <input type="password" id="userApiKey" placeholder="Yahan apni Gemini API Key paste karein" onchange="saveApiKey()">
+        </div>
+
+        <h2>Apna sawal poochhein</h2>
+        <div class="input-group">
+            <textarea id="userInput" placeholder="Jaise: Bharat ki rajdhani kya hai? (Likh kar ya mic dabakar bolein)"></textarea>
+            <button class="mic-btn" id="micBtn" onclick="startVoiceRecognition()">🎙️</button>
+        </div>
+        <button class="submit-btn" onclick="getAIAnswer()">Jawab dekhein</button>
+
+        <div class="output-box" id="outputBox"></div>
+    </div>
+
+    <footer>
+        © 2026 Rajhans Quick Answer
+    </footer>
+
+    <script>
+        // LocalStorage se API Key load karna
+        window.onload = function() {
+            const savedKey = localStorage.getItem('gemini_api_key');
+            if (savedKey) {
+                document.getElementById('userApiKey').value = savedKey;
+            }
+        };
+
+        function saveApiKey() {
+            const key = document.getElementById('userApiKey').value.trim();
+            localStorage.setItem('gemini_api_key', key);
+        }
+
+        // Voice Search (Speech Recognition)
+        function startVoiceRecognition() {
+            const micBtn = document.getElementById('micBtn');
+            const userInput = document.getElementById('userInput');
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Aapke browser me voice search support nahi hai.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+            recognition.lang = 'hi-IN';
+
+            recognition.onstart = function() { micBtn.classList.add('listening'); };
+            recognition.onresult = function(event) {
+                userInput.value = event.results[0][0].transcript;
+                micBtn.classList.remove('listening');
+            };
+            recognition.onerror = function() { micBtn.classList.remove('listening'); };
+            recognition.onend = function() { micBtn.classList.remove('listening'); };
+
+            recognition.start();
+        }
+
+        // Real AI Answer Fetch
+        async function getAIAnswer() {
+            const userInput = document.getElementById('userInput').value;
+            const apiKey = document.getElementById('userApiKey').value.trim();
+            const outputBox = document.getElementById('outputBox');
+
+            if (!apiKey) {
+                alert("Kripya uper diye gaye box me apni Gemini API Key dalein!");
+                return;
+            }
+
+            if (!userInput.trim()) {
+                alert("Kripya koi sawal likhein ya bolein!");
+                return;
+            }
+
+            outputBox.style.display = "block";
+            outputBox.innerText = "Jawab dhoondha ja raha hai...";
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: userInput }] }]
+                    })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    outputBox.innerText = data.candidates[0].content.parts[0].text;
+                } else {
+                    outputBox.innerText = "API Key galat hai ya koi samasya aayi hai.";
+                }
+            } catch (error) {
+                outputBox.innerText = "Kucch gadbad hui, kripya dobara koshish karein.";
+            }
+        }
+    </script>
+
 </body>
 </html>
