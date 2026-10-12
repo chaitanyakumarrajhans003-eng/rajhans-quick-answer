@@ -237,3 +237,89 @@
 
 </body>
 </html>
+    <script>
+        window.onload = function() {
+            const savedKey = localStorage.getItem('groq_api_key');
+            if (savedKey) {
+                document.getElementById('userApiKey').value = savedKey;
+            }
+        };
+
+        function saveApiKey() {
+            const key = document.getElementById('userApiKey').value.trim();
+            localStorage.setItem('groq_api_key', key);
+        }
+
+        let recognition;
+        function startVoiceRecognition() {
+            const micBtn = document.getElementById('micBtn');
+            const userInput = document.getElementById('userInput');
+
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                alert("Aapke browser me voice search support nahi hai.");
+                return;
+            }
+
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'hi-IN';
+
+            recognition.onstart = function() { micBtn.classList.add('listening'); };
+            recognition.onresult = function(event) {
+                userInput.value = event.results[0][0].transcript;
+                micBtn.classList.remove('listening');
+            };
+            recognition.onerror = function() { micBtn.classList.remove('listening'); };
+            recognition.onend = function() { micBtn.classList.remove('listening'); };
+
+            recognition.start();
+        }
+
+        async function getAIAnswer() {
+            const apiKey = document.getElementById('userApiKey').value.trim();
+            const prompt = document.getElementById('userInput').value.trim();
+            const outputBox = document.getElementById('outputBox');
+
+            if (!apiKey) {
+                alert("Kripya pehle apni Groq API Key paste karein!");
+                return;
+            }
+
+            if (!prompt) {
+                alert("Kripya koi sawal likhein ya bolein!");
+                return;
+            }
+
+            outputBox.style.display = "block";
+            outputBox.innerText = "Jawab dhoondha ja raha hai...";
+
+            try {
+                const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": "Bearer " + apiKey,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        model: "llama-3.1-8b-instant",
+                        messages: [
+                            { role: "system", content: "Aap ek helpful AI assistant hain. Saral aur seedhe shabdome Hindi me jawab dein." },
+                            { role: "user", content: prompt }
+                        ]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.choices && data.choices[0].message) {
+                    outputBox.innerText = data.choices[0].message.content;
+                } else if (data.error && data.error.message) {
+                    outputBox.innerText = "Error: " + data.error.message;
+                } else {
+                    outputBox.innerText = "Error: Jawab prapt nahi hua.";
+                }
+            } catch (error) {
+                outputBox.innerText = "Connection Error: " + error.message;
+            }
+        }
+    </script>
